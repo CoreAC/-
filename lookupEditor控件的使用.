@@ -1,0 +1,19 @@
+二 lookUpEditor控件的使用基本.
+1.在服务器端的IN项目下找到lookUp接口文件.
+在接口文件中声明所需要的GETlookup方法,然后在SE项目下找到LOOKUP文件,并在其中实现具体方法.
+具体方法写法举例:
+  public LM GetPerKindID(string templateShow)
+        {
+            return LF.CI(new LC("KindID", "编号", 50), new LC("KindName", "名称", 100)).CM<NSPerKiInfo>(CSCC.FACt, CMH.Dict.ToDict("TemplateShow", templateShow));
+        }
+在这个方法中  LC("KindID","编号",50) 这一个部分为下拉框中的分段式显示的第一部分,50为它的长度.逗号后边为第二部分,依次类推.
+外边的CM方法需要给它两个参数.第一个参数为<>中给出要查询的表的info类型. 而后参数部分中的第一部分为CSCC.FACt ,这一部分基本为固定(暂时来说)  ,之后的另一部分为为
+给出去的一个字段字典,来当做搜索的限制条件. 相当于SQL语句中的Where字段.
+
+2.之后在FormView文件中实现接口ILookUpRefresh,实现此接口以后会实现RefreshLookUp方法.在这个方法中调用之前上一步所写的方法即可.
+例如:
+ public void RefreshLookup()
+        {
+            CCH.Binding.Lookup(NPCH.Lookup.GetPerKindID(C.Yes), cmbColLineKindID);
+        }
+其中,大部分都是固定的,方法中最后传入的cmbColLineKindID参数则是要绑定的控件名称.
