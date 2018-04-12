@@ -1,0 +1,39 @@
+一些UI和内部的细节.
+
+UI部分:
+GridView中标题设置为两行格式.
+此处可以在插件内部对应的column中设置,通过AppearacnceHerder属性设置,在其中的Options属性中,把UsetextOptation改为True即可.
+
+可以用键盘的上下左右来微调控件像素.
+
+在Column属性的右边两列可以设置只读以及是否允许选中,编辑等属性.
+
+在每个标题中对于内嵌的插件.
+CheckEditor可以在 NullStyle中设置没有选中时显示的是什么样式.
+
+
+
+
+逻辑部分:
+在SE模块中的 *Data.cs中做出DoUpdata 以及 DoDelete 还有 DoInsert等几个方法的操作,这些都是对主表的操作.当我们在主表上添加了细表的时候
+需要在对主表操作的同事对细表也操作.否则会出现细表丢失的失误.而在其中的DoDelete方法中,我们需要先将细表中的全部数据都清空然后再对主表操作.
+否则数据库中细表还留存有这个数据.
+删除的时候使用这个方法:
+ public void lineDelete(NRCrsInfo info)
+        {
+            CSH.DD.D<NRCrsInfo>(CSCC.DDKy, CMH.Dict.FindKey(info));         
+        }
+ CSH.DD.D<>()方法.
+ 其中<>里边写要操作的对象类型,  而后边的CMH.Dict.FindKey(info) 这其中的info则是主表的info
+ 意义是通过主表的主键找到细表,然后将主表中的细表数据删除.
+ 
+ 关于菜单的使用:
+ 菜单主要需要设置菜单中的item一栏.此处的item是在FormView中独立存在的 即使是不同的菜单中的item也不能重名.
+ 而我们需要在FormView中重写AfterWorkItemCreated()方法来把这个选项给注册一下.
+  WorkItem.CActionManager.AddNew("Cty", StatusType.Browse).Add(cmiCtype);
+  记得需要在父类的方法之后再使用.
+  之后,我们需要在WorkItem项目中,重写InitNormalEvent()方法来接收这些方法.
+  格式大概这样:
+  CHandlers.AddHandler("Cty", OnCty);
+  其中,OnCty方法是写在WorkItem中的自身的方法,我们需要实现它.
+  另外过想要在这方法中做一些关于主表的操作,需要在FormView中注册主表属性 并且通过接口传递过来.
