@@ -1,0 +1,35 @@
+更新状态是一个额外的操作,我们需要在这里对业务凭证的状态的更新做一些权限上的限制.
+主要操作在于:
+      客户端  我们需要做一些权限限制.重写一下以下方法:
+      protected override void StatusCompleted()  这个方法会在业务凭证的状态改变的时候被调用.
+      首先我们需要判断下现在业务凭证处于什么状态.
+      if (JH.In<StatusType>(WorkItem.StatusManager.Status,StatusType.Browse,StatusType.Edit))  
+      这里我们选择处于浏览状态以及编辑状态都可以 但是实际上我觉得只要选择浏览状态就可以了.
+      然后我们通过这个方式获得一个bool值,这个值被用来判断权限.此处的意思是,我们返回一个advEditor的bool值,如果需要判断其他权限相关的操作,
+      可以通过和advEditor用"与"的方式来连接,这样就可以控制advEditor的值了.
+      bool advEditor = SecurityProvider.HasPurview(WorkItem.ObjInfo.ObjType, RightType.AdvEdit);
+      
+      服务器端:
+      这里主要做的是一个调用SQL语句来做一个对数据库的更改.
+      <update id="UpdateStatus" parameterClass="NRCrs">
+       Update T Set T.DocStatus = #DocStatus#
+       From NRCrs T
+       Where T.CourseID = #CourseID#
+      </update>
+      这个语句就是用来更改数据库中对应字段的SQL语句.
+     标签中的id 就是表示外部调用的方法名.  而参数则需要我们用 # # 来包起来.
+     一般我们需要给他两个参数,一个用来找到表中行数的参数,另一个则是修改的字段的参数.
+      private NRCrsInfo StatusChangeEx(NRCrsInfo info, string newStatus)
+        {
+            info.DocStatus = newStatus;
+            CSH.TH.Ex(info, () =>
+            {
+                CSH.DD.U<NRCrsInfo>("UpdateStatus", CMH.Dict.FindDict(info, "CourseID", "DocStatus"));
+            });
+            return FindOneByKey(CMH.Dict.FindKey(info));
+        }
+        外部调用时候的写法.
+        
+      
+      
+      
